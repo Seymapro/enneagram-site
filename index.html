@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinamik Enneagram Testi</title>
+    <style>
+        /* General Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
+        .header { text-align: center; color: white; margin-bottom: 40px; padding: 40px 0; }
+        .header h1 { font-size: 3rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
+
+        /* Card Styles */
+        .card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-bottom: 30px; transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+
+        /* Section Visibility */
+        .test-section { display: none; }
+        .test-section.active { display: block; }
+
+        /* Question and Options */
+        .question h3 { margin-bottom: 20px; color: #5a67d8; font-size: 1.2rem; line-height: 1.5; }
+        .options { display: grid; gap: 10px; }
+        .option { padding: 15px 20px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; background: #f8fafc; }
+        .option:hover { border-color: #5a67d8; background: #edf2f7; }
+        .option.selected { border-color: #48bb78; background: #e6fffa; color: #2d3748; font-weight: bold; }
+        .option input { display: none; }
+
+        /* Buttons and Navigation */
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+        .navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+
+        /* Progress Bar */
+        .progress-bar { background: #e2e8f0; height: 8px; border-radius: 4px; margin: 20px 0; overflow: hidden; }
+        .progress-fill { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; transition: width 0.3s ease; border-radius: 4px; }
+        .progress-text { text-align: center; color: #666; margin-bottom: 10px; }
+
+        /* Enneagram Type Cards on Home */
+        .enneagram-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+        .type-card { background: white; border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.3s ease; }
+        .type-card:hover { transform: translateY(-5px); }
+        .type-number { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin: 0 auto 15px; }
+        .type-title { font-size: 1.2rem; font-weight: bold; color: #2d3748; margin-bottom: 10px; }
+        .type-description { color: #666; font-size: 0.9rem; line-height: 1.5; }
+
+        /* Results Display */
+        .results { text-align: center; }
+        .result-type { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); color: #2d3748; border-radius: 20px; padding: 30px; margin: 20px 0; border: 1px solid #cbd5e0; }
+        .result-number { font-size: 4rem; font-weight: bold; margin-bottom: 10px; background: -webkit-linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .result-title { font-size: 2rem; margin-bottom: 15px; }
+        .result-description { font-size: 1.1rem; line-height: 1.6; opacity: 0.9; }
+        #qna-results-list { text-align: left; margin-top: 40px; }
+        .qna-item { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #667eea; }
+        .qna-item p { margin: 0; }
+        .qna-item .question-text { font-weight: bold; color: #4a5568; margin-bottom: 5px; }
+        .qna-item .answer-text { color: #2d3748; }
+
+        /* Name Prompt Input */
+        .input-group { margin: 20px 0; }
+        #name-input { width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.1rem; transition: border-color 0.3s; }
+        #name-input:focus { border-color: #5a67d8; outline: none; }
+
+        /* Animation */
+        .fade-in { animation: fadeIn 0.6s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .card { padding: 20px; }
+            .container { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Enneagram Tipinizi Keşfedin</h1>
+            <p>Kişiliğinizin sırlarını ortaya çıkarın ve sunucuya gönderin.</p>
+        </div>
+
+        <!-- Home Section -->
+        <div id="home" class="test-section active">
+            <div class="card fade-in">
+                <h2 style="text-align: center; margin-bottom: 20px; color: #5a67d8;">Enneagram Nedir?</h2>
+                <p style="text-align: center; margin-bottom: 30px; color: #666; line-height: 1.6;">
+                    Enneagram, her birinin kendine özgü motivasyonları, korkuları ve arzuları olan dokuz farklı tipi 
+                    tanımlayan güçlü bir kişilik sistemidir. Tipinizi anlamak kişisel gelişiminizde ve 
+                    ilişkilerinizi geliştirmede size yardımcı olabilir.
+                </p>
+                <div style="text-align: center;">
+                    <button class="btn" onclick="showNamePrompt()">Yolculuğunuzu Başlatın</button>
+                </div>
+            </div>
+            <!-- Enneagram types display can remain here if desired -->
+        </div>
+        
+        <!-- Name Prompt Section -->
+        <div id="name-prompt" class="test-section">
+            <div class="card fade-in">
+                <h2 style="text-align: center; color: #5a67d8;">Başlamadan Önce</h2>
+                <p style="text-align: center; margin: 15px 0; color: #666;">Lütfen tam adınızı girin.</p>
+                <div class="input-group">
+                    <input type="text" id="name-input" placeholder="Örn: Elif Yılmaz">
+                </div>
+                <div style="text-align: center;">
+                    <button class="btn" onclick="startTest()">Teste Başla</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Section -->
+        <div id="test" class="test-section">
+            <div class="card">
+                <div class="progress-text">Soru <span id="current-question">1</span> / <span id="total-questions">45</span></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div id="question-container"></div>
+                <div class="navigation">
+                    <button class="btn" id="prev-btn" onclick="previousQuestion()" disabled>Önceki</button>
+                    <button class="btn" id="next-btn" onclick="nextQuestion()" disabled>Sonraki</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="test-section">
+            <div class="card results fade-in">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #5a67d8;">Test Sonuçlarınız</h2>
+                <div id="result-display">
+                    <!-- Dynamic result content will be injected here -->
+                </div>
+                 <div id="submission-status" style="margin-top: 20px; font-weight: bold;"></div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="goHome()">Ana Sayfaya Dön</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const serverEndpoint = 'http://51.15.160.49/api/test-results';
+        let clientName = '';
+        let quizTitle = 'enneagram';
+
+        // --- QUESTIONS (with unique IDs added) ---
+        const questions = [
+            { id: 'q1', text: 'İster kendimle ilgili olsun ister çevremdeki dünya, her şeyin en doğru, en iyi ve "olması gerektiği" versiyonunu hedeflerim. "İdare eder" bir sonuç beni asla tatmin etmez.', type: 1 },
+            { id: 'q2', text: 'Zihnimin içinde, yaptığım her şeyi denetleyen ve bir hata ya da eksiklik gördüğünde beni acımasızca eleştiren bir ses var. En büyük ve en sert eleştirmenim yine kendimimdir.', type: 1 },
+            { id: 'q3', text: 'Hayatta "doğru" ve "yanlış" olduğuna inandığım net çizgilerim vardır. Bu kişisel ahlak kurallarımdan taviz vermek, kendi özüme ihanet etmek gibi hissettirir.', type: 1 },
+            { id: 'q4', text: 'Üzerime aldığım bir görevi ya da sorumluluğu yerine getirmek benim için bir onur meselesidir. İşleri "yarım yamalak" yapmak ya da sözümü tutmamak vicdanımda ağır bir yük oluşturur.', type: 1 },
+            { id: 'q5', text: 'Etrafıma baktığımda, nelerin yanlış, eksik veya daha iyi olabileceğini hemen fark ederim. Bu, dünyayı daha iyi bir yer yapma arzumdan gelse de, bazen hem kendime hem de başkalarına karşı fazla yargılayıcı olabildiğimin farkındayım.', type: 1 },
+            { id: 'q6', text: 'Başkalarına yardım etmek, onların hayatını kolaylaştırmak bana en derin tatmini yaşatır. Çoğu zaman kendi ihtiyaçlarımı ikinci plana atıp, sevdiklerim için fedakarlık yapmaktan çekinmem.', type: 2 },
+            { id: 'q7', text: 'Birisi benden bir şey istediğinde, ne kadar yorgun veya meşgul olursam olayım \'Hayır\' demek bana çok zor gelir. Onları hayal kırıklığına uğratma veya artık ihtiyaç duyulmama düşüncesi beni rahatsız eder.', type: 2 },
+            { id: 'q8', text: 'Hayattaki en temel arayışım sevilmek ve takdir görmektir. Varlığımın başkaları için bir anlam ifade ettiğini ve değerli olduğumu hissetmek, benim için nefes almak gibidir.', type: 2 },
+            { id: 'q9', text: 'İnsanların neye ihtiyacı olduğunu, ne hissettiğini veya neye üzüldüğünü daha onlar söylemeden sezebilen bir radarım var gibidir. Bu duyarlılık, onlara nasıl yaklaşacağımı belirler.', type: 2 },
+            { id: 'q10', text: 'Duygusal dünyam, ilişkilerimin barometresi gibidir. Sevdiklerimle aram iyiyse ben de iyiyimdir; aramızda bir soğukluk veya sorun varsa, bu durum tüm enerjimi ve neşemi derinden etkiler.', type: 2 },
+            { id: 'q11', text: 'Hayatımdaki en büyük itici güç, ortaya koyduğum başarılarla insanların takdirini ve hayranlığını kazanmaktır. Yaptığım işlerle insanların gözünde değerli ve başarılı biri olarak görülmek, benim için en büyük ödüldür.', type: 3 },
+            { id: 'q12', text: 'Başkalarının beni nasıl gördüğü benim için hayati önem taşır. Dışarıya yansıttığım imaj, başarılarımın ve kim olduğumun bir vitrinidir ve bu vitrinin her zaman parlak ve etkileyici görünmesine özen gösteririm.', type: 3 },
+            { id: 'q13', text: 'Bir hedef belirlediğimde, o hedefe ulaşmak için adeta bir lazer gibi odaklanırım. O an benim için diğer her şey önemini yitirir; tek gerçek, o hedefe giden yoldur.', type: 3 },
+            { id: 'q14', text: 'Duyguların, hedeflere ulaşma yolunda zaman kaybettiren birer engel olabileceğini düşünürüm. Bu yüzden beni yavaşlatacak veya odağımı dağıtacak duyguları bir kenara bırakıp işime odaklanma konusunda oldukça pragmatik ve yetenekliyimdir.', type: 3 },
+            { id: 'q15', text: 'Rekabet ortamı beni korkutmaz, aksine kamçılar ve enerjimi artırır. Hayat benim için bir nevi sahnedir ve ben bu sahnede her zaman en iyi olmak için yarışırım.', type: 3 },
+            { id: 'q16', text: 'Sıradan veya "herkes gibi" olmak bana anlamsız gelir. Kendi benzersiz kimliğimi bulmak ve bu kimliği dünyaya yansıtmak benim için bir yaşam amacıdır.', type: 4 },
+            { id: 'q17', text: 'Hayatın yüzeyinde kalmak beni tatmin etmez. Yaptığım her şeyde, kurduğum her ilişkide ve yaşadığım her anda bir anlam ve derinlik arayışı içindeyimdir.', type: 4 },
+            { id: 'q18', text: 'Duygular, hayatın renkleridir; melankoli bile benim için boşluk hissinden daha değerlidir. Duygularımın tüm yelpazesini, en derin ve en yoğun haliyle yaşamayı tercih ederim.', type: 4 },
+            { id: 'q19', text: 'Zihnimin ve kalbimin içinde sık sık kaybolurum. "Ben kimim?", "Ne hissediyorum?" gibi sorularla kendimi sürekli analiz eder, iç dünyamı anlamaya çalışırım.', type: 4 },
+            { id: 'q20', text: 'Güzellik ve estetik benim için sadece bir zevk değil, bir ihtiyaçtır. Etrafımın, giyim tarzımın, dinlediğim müziğin... Kısacası hayatımın her alanının estetik bir uyum içinde olması ruhumu besler.', type: 4 },
+            { id: 'q21', text: 'Dünyayı anlamak ve yetkin olmak için bir konu hakkında öğrenebileceğim her şeyi öğrenmek isterim. Bilgi benim için bir sığınak ve güç kaynağıdır.', type: 5 },
+            { id: 'q22', text: 'Sosyal ortamlardan sonra zihnimi ve enerjimi toplamak için kendi başıma kalmaya kesinlikle ihtiyaç duyarım. Yalnızlık benim için bir yük değil, bir yenilenme alanıdır.', type: 5 },
+            { id: 'q23', text: 'Karar verirken karmaşık duygulardansa, net ve somut verilere, mantığa ve gerçeklere güvenmeyi tercih ederim. Duygular, genellikle durumu objektif görmeyi engeller.', type: 5 },
+            { id: 'q24', text: 'Harekete geçmeden veya bir ilişkiye derinden dahil olmadan önce durumu kenardan gözlemlemeyi tercih ederim. Dış dünyaya karşı kendimi korumak için görünmez bir sınır çizerim.', type: 5 },
+            { id: 'q25', text: 'Kişisel hayatım ve iç dünyam bana özeldir. Enerjimi ve zamanımı korumak için kendimle ilgili bilgileri sadece güvendiğim az sayıda insanla, o da gerektiği kadar paylaşırım.', type: 5 },
+            { id: 'q26', text: 'Geleceğin ne getireceğini bilmemek veya bir durumun sonucunun belirsiz olması, içimde sürekli çalışan bir endişe motorunu tetikler. Güvenli ve öngörülebilir bir zemin arayışı içindeyimdir.', type: 6 },
+            { id: 'q27', text: 'Zihnim, bir karar vermeden önce olası en kötü senaryoları tarayan bir radar gibi çalışır. Bu, kötümser olduğumdan değil, her türlü olasılığa karşı hazırlıklı ve güvende olmak istediğimdendir.', type: 6 },
+            { id: 'q28', text: 'Güven benim için kolayca verilmez, zamanla ve sadakatle kazanılır. Birine veya bir fikre tam olarak inanmadan önce, onu zihnimde sorgular, test eder ve potansiyel risklerini tartarim.', type: 6 },
+            { id: 'q29', text: 'Aceleci kararlar almaktan kaçınırım; bir adım atmadan önce her açıdan emin olmak, tüm tedbirleri almak isterim. Plansız veya desteksiz bir şekilde harekete geçmek beni ciddi anlamda strese sokar.', type: 6 },
+            { id: 'q30', text: 'Otoriteyi veya genel kabul görmüş fikirleri körü körüne kabul etmem. Güvenilir bir dayanak bulana kadar her şeyi sorgular, şüphe duyar ve mantıksal tutarlılık ararım.', type: 6 },
+            { id: 'q31', text: 'Rutin ve tekdüzelik beni boğar; hayatın her zaman yeni, heyecan verici ve keyifli seçenekler sunmasını isterim. Gelecekte beni bekleyen olasılıkları düşünmek bile bana enerji verir.', type: 7 },
+            { id: 'q32', text: 'Hayatın karanlık ve acı veren taraflarında oyalanmak yerine, bardağın dolu tarafını görmeyi ve geleceğe umutla bakmayı tercih ederim. Her durumun içinde bir pozitif yön bulabilirim.', type: 7 },
+            { id: 'q33', text: 'Bir şeyle uzun süre ilgilenmekte zorlanırım. Zihnim sürekli bir sonraki ilginç plana veya keyifli aktiviteye atlamak için sabırsızlanır; can sıkıntısı benim için en kötü şeylerden biridir.', type: 7 },
+            { id: 'q34', text: 'Hayatı bir macera ve keşif alanı olarak görürüm. Kendimi tek bir yola veya seçeneğe hapsetmektense, tüm kapıları açık tutmayı ve yeni deneyimlere atılmayı severim.', type: 7 },
+            { id: 'q35', text: 'Zihnim aynı anda birden fazla ilginç fikirle dolu olduğu için, tek bir konuya odaklanmakta zorlanabilirim. Aklıma gelen yeni bir olasılık, dikkatimi kolayca başka bir yöne çekebilir.', type: 7 },
+            { id: 'q36', text: 'Hayat bana bir zorluk sunduğunda, ondan kaçmak yerine tüm gücümle üzerine giderim. Mücadele ve meydan okuma beni canlandırır.', type: 8 },
+            { id: 'q37', text: 'Bir durumda kontrolün bende olmasını isterim. Başkaları tarafından yönetilmek veya kısıtlanmak, benim için en kabul edilemez şeylerden biridir.', type: 8 },
+            { id: 'q38', text: 'Adalet duygum çok güçlüdür ve zayıfın veya haksızlığa uğrayanın yanında dururum. Sevdiklerimi ise kanatlarımın altına alır, her türlü tehlikeye karşı korurum.', type: 8 },
+            { id: 'q39', text: 'Zayıflık veya kararsızlık göstermek bana göre değildir. Duruşum nettir, sesim güçlüdür ve bir karar verdiğimde, kimsenin beni o yoldan döndürmesine kolay kolay izin vermem.', type: 8 },
+            { id: 'q40', text: 'Ben bir eylem insanıyım; uzun uzun düşünmek yerine harekete geçmeyi tercih ederim. Büyük oynamaktan ve hedeflerim için cesur riskler almaktan çekinmem.', type: 8 },
+            { id: 'q41', text: 'İç huzurum benim için en değerli şeydir. Bu yüzden, gerilime veya çatışmaya yol açabilecek her türlü durumdan, ne pahasına olursa olsun kaçınmaya çalışırım.', type: 9 },
+            { id: 'q42', text: 'Ortamdaki uyumu korumak adına, kendi istek ve ihtiyaçlarımı dile getirmektense, başkalarının planlarına uymak bana daha kolay ve doğal gelir.', type: 9 },
+            { id: 'q43', text: 'Bir anlaşmazlık durumunda, her iki tarafın da bakış açısını kolayca anlayabilir ve her birinde bir haklılık payı bulabilirim. Bu yüzden net bir taraf seçmek veya kesin bir yargıya varmak benim için zordur.', type: 9 },
+            { id: 'q44', text: 'İnsanlar arasında bir gerginlik olduğunda, ortamı yumuşatan, tansiyonu düşüren ve orta yolu bulmaya çalışan kişi genellikle ben olurum.', type: 9 },
+            { id: 'q45', text: 'Spot ışıkları altında olmaktansa, arka planda kalıp olayları sakince gözlemlemeyi tercih ederim. Öne çıkmak ve dikkat çekmek beni rahatsız eder.', type: 9 }
+        ];
+
+        const typeDescriptions = {
+            1: { name: "Mükemmeliyetçi", description: "İlkeli, amaca yönelik, kendini kontrol eden ve mükemmeliyetçisiniz." },
+            2: { name: "Yardımcı",  description: "Şefkatli, kişilerarası, gösterişçi, cömert ve başkalarını memnun etmeye çalışırsınız." },
+            3: { name: "Başaran", description: "Başarı odaklı, pragmatik, uyumlu, başarılı, kararlı ve imaj odaklısınız." },
+            4: { name: "Bireyci", description: "Hassas, içe kapanık, ifadeci, dramatik, narsist ve huysuz birisiniz." },
+            5: { name: "Araştırmacı", description: "Yoğun, zihinsel, algısal, yenilikçi, ketum ve izole birisiniz." },
+            6: { name: "Sadık", description: "Kararlı, güvenlik odaklı, ilgili, sorumlu, endişeli ve şüphecisiniz." },
+            7: { name: "Coşkulu", description: "Meşgul, eğlence seven, spontan, çok yönlü, dikkati dağınık ve saçılmış birisiniz." },
+            8: { name: "Meydan Okuyan", description: "Güçlü, baskın, kendine güvenli, kararlı, inatçı ve çatışmacısınız." },
+            9: { name: "Barış Getiren", description: "Uysal, alçakgönüllü, kabul eden, güven veren, uzlaşmacı ve kayıtsızsınız." }
+        };
+
+        const answerOptions = [
+            { text: "Katılıyorum", score: 5 },
+            { text: "Kısmen Katılıyorum", score: 4 },
+            { text: "Kararsızım", score: 3 },
+            { text: "Kısmen Katılmıyorum", score: 2 },
+            { text: "Katılmıyorum", score: 1 },
+        ];
+
+        let currentQuestion = 0;
+        let answers = {};
+        let shuffledQuestions = [];
+
+        function shuffleArray(array) {
+            let newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.test-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        function showNamePrompt() {
+            showSection('name-prompt');
+        }
+
+        function startTest() {
+            const nameInput = document.getElementById('name-input');
+            if (nameInput.value.trim() === '') {
+                alert('Lütfen adınızı giriniz.');
+                return;
+            }
+            clientName = nameInput.value.trim();
+
+            currentQuestion = 0;
+            answers = {};
+            shuffledQuestions = shuffleArray(questions);
+            showSection('test');
+            displayQuestion();
+        }
+        
+        function displayQuestion() {
+            const question = shuffledQuestions[currentQuestion];
+            const container = document.getElementById('question-container');
+            
+            container.innerHTML = `
+                <div class="question fade-in" data-question-id="${question.id}">
+                    <h3>${question.text}</h3>
+                    <div class="options">
+                        ${answerOptions.map((option, index) => `
+                            <div class="option" onclick="selectOption(this, ${option.score}, '${option.text}')">
+                                <label>${option.text}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('current-question').textContent = currentQuestion + 1;
+            const progress = (currentQuestion / shuffledQuestions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = answers[question.id] === undefined;
+            if (currentQuestion === shuffledQuestions.length - 1) {
+                nextBtn.textContent = 'Bitir ve Gönder';
+            } else {
+                nextBtn.textContent = 'Sonraki';
+            }
+
+            if (answers[question.id]) {
+                const selectedText = answers[question.id].userAnswer;
+                document.querySelectorAll('.option').forEach(opt => {
+                    if (opt.querySelector('label').textContent === selectedText) {
+                        opt.classList.add('selected');
+                    }
+                });
+            }
+        }
+
+        function selectOption(element, score, answerText) {
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            element.classList.add('selected');
+
+            const currentQ = shuffledQuestions[currentQuestion];
+            answers[currentQ.id] = {
+                questionId: currentQ.id,
+                questionText: currentQ.text,
+                userAnswer: answerText,
+                score: score,
+                type: currentQ.type
+            };
+            
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (answers[shuffledQuestions[currentQuestion].id] === undefined) return;
+            
+            if (currentQuestion < shuffledQuestions.length - 1) {
+                currentQuestion++;
+                displayQuestion();
+            } else {
+                finishAndSubmit();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                displayQuestion();
+            }
+        }
+
+        async function finishAndSubmit() {
+            const submissionStatus = document.getElementById('submission-status');
+            showSection('results');
+            submissionStatus.textContent = 'Sonuçlar hazırlanıyor ve sunucuya gönderiliyor...';
+            submissionStatus.style.color = '#5a67d8';
+
+            // 1. Prepare data for server
+            const payload = {
+                clientName: clientName,
+                quizTitle: quizTitle,
+                answers: Object.values(answers).map(a => ({
+                    questionId: a.questionId,
+                    questionText: a.questionText,
+                    userAnswer: a.userAnswer
+                })),
+                submittedAt: new Date().toISOString()
+            };
+
+            // 2. Display results locally first
+            displayLocalResults();
+
+            // 3. Send data to server
+            try {
+                const response = await fetch(serverEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    submissionStatus.textContent = 'Sonuçlar başarıyla sunucuya gönderildi!';
+                    submissionStatus.style.color = 'green';
+                } else {
+                    const errorData = await response.text();
+                    throw new Error(`Sunucu Hatası: ${response.status} - ${errorData}`);
+                }
+            } catch (error) {
+                console.error('Submission Error:', error);
+                submissionStatus.textContent = 'Hata: Sonuçlar sunucuya gönderilemedi. Lütfen internet bağlantınızı kontrol edin.';
+                submissionStatus.style.color = 'red';
+            }
+        }
+
+        function displayLocalResults() {
+            // Calculate Enneagram types
+            let typeScores = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0};
+            Object.values(answers).forEach(answer => {
+                typeScores[answer.type] += answer.score;
+            });
+
+            const sortedTypes = Object.entries(typeScores).sort(([,a],[,b]) => b-a);
+            const primaryTypeNum = parseInt(sortedTypes[0][0]);
+            const secondaryTypeNum = parseInt(sortedTypes[1][0]);
+            const primaryInfo = typeDescriptions[primaryTypeNum];
+            const secondaryInfo = typeDescriptions[secondaryTypeNum];
+            
+            // Generate Question and Answer list HTML
+            let qnaHtml = `<div id="qna-results-list"><h4>${clientName} Adlı Kullanıcının Cevapları:</h4>`;
+            questions.forEach(q => { // Iterate in original order
+                const answer = answers[q.id];
+                if (answer) {
+                    qnaHtml += `
+                        <div class="qna-item">
+                            <p class="question-text">${q.text}</p>
+                            <p class="answer-text"><strong>Cevabınız:</strong> ${answer.userAnswer}</p>
+                        </div>
+                    `;
+                }
+            });
+            qnaHtml += '</div>';
+
+            // Populate the result display area
+            document.getElementById('result-display').innerHTML = `
+                <p>Merhaba <strong>${clientName}</strong>, işte enneagram sonuçların ve verdiğin yanıtlar:</p>
+                
+                <h3 style="text-align: left; margin-top:25px; margin-bottom: 10px; color: #5a67d8;">Birincil Tipiniz</h3>
+                <div class="result-type">
+                    <div class="result-number">${primaryTypeNum}</div>
+                    <div class="result-title">${primaryInfo.name}</div>
+                    <div class="result-description">${primaryInfo.description}</div>
+                </div>
+                
+                <h3 style="text-align: left; margin-bottom: 10px; color: #5a67d8;">İkincil Tipiniz</h3>
+                <div class="result-type">
+                    <div class="result-number">${secondaryTypeNum}</div>
+                    <div class="result-title">${secondaryInfo.name}</div>
+                    <div class="result-description">${secondaryInfo.description}</div>
+                </div>
+
+                ${qnaHtml}
+            `;
+        }
+        
+        function goHome() {
+            clientName = '';
+            document.getElementById('name-input').value = '';
+            showSection('home');
+        }
+
+        // Initialize total questions count on page load
+        document.getElementById('total-questions').textContent = questions.length;
+    </script>
+</body>
+</html>
